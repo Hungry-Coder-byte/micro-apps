@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model CustomApp {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  prompt      String
+  code        String
+  isPublic    Boolean   @default(false)
+  sessionId   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  usageEvents AppUsageEvent[]
+}
+
+model AppRequest {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  category        String
+  submitterEmail  String
+  stripePaymentId String?  @unique
+  status          String   @default("PENDING")
+  adminNotes      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model AppUsageEvent {
+  id          String   @id @default(cuid())
+  appSlug     String?
+  customAppId String?
+  customApp   CustomApp? @relation(fields: [customAppId], references: [id], onDelete: Cascade)
+  eventType   String
+  sessionId   String
+  createdAt   DateTime @default(now())
+
+  @@index([appSlug])
+  @@index([createdAt])
+}
+
+model WebhookEndpoint {
+  id        String   @id @default(cuid())
+  token     String   @unique @default(cuid())
+  payloads  String   @default("[]")
+  createdAt DateTime @default(now())
+}
